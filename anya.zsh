@@ -2,28 +2,60 @@
 # ANYA - Terminal Companion
 # ==========================================
 
-# ------------------------------------------
+# Directorio principal de Anya
+ANYA_DIR="$HOME/.config/anya"
+
+
+# ==========================================
 # Mostrar una reacción
-# ------------------------------------------
+# ==========================================
 
 anya() {
     local estado="$1"
 
     case "$estado" in
         bienvenida)
-            cat ~/.config/anya/bienvenida.txt
+            cat "$ANYA_DIR/bienvenida.txt"
             ;;
 
         error)
-            cat ~/.config/anya/error.txt
+            cat "$ANYA_DIR/error.txt"
             ;;
 
         descarga)
-            cat ~/.config/anya/descarga.txt
+            cat "$ANYA_DIR/descarga.txt"
             ;;
 
         *)
             echo "Estado de Anya desconocido: $estado"
+            return 1
+            ;;
+    esac
+}
+
+
+# ==========================================
+# Gestionar eventos
+# ==========================================
+
+anya_event() {
+    local evento="$1"
+
+    case "$evento" in
+        bienvenida)
+            anya bienvenida
+            ;;
+
+        error)
+            anya error
+            ;;
+
+        descarga)
+            anya descarga
+            ;;
+
+        *)
+            echo "Evento de Anya desconocido: $evento"
             return 1
             ;;
     esac
@@ -56,10 +88,11 @@ anya_error() {
 
     # Ctrl+C no es un error
     [[ "$estado" -eq 130 ]] && return
-
-    # --------------------------------------
-    # Comandos cuyo código 1 es normal
-    # --------------------------------------
+	# Los comandos internos de Anya no generan
+	# una reacción de error adicional
+	if [[ "$comando" == anya_event\ * || "$comando" == anya\ * ]]; then
+    return
+	fi
 
     # grep:
     # 0 = encontró coincidencias
@@ -77,12 +110,8 @@ anya_error() {
         return
     fi
 
-    # --------------------------------------
-    # Mostrar reacción
-    # --------------------------------------
-
     echo ""
-    anya error
+    anya_event error
     echo ""
 }
 
@@ -100,7 +129,7 @@ wget() {
 
     if [[ "$estado" -eq 0 ]]; then
         echo ""
-        anya descarga
+        anya_event descarga
         echo ""
     fi
 
