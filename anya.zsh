@@ -224,3 +224,17 @@ wget() {
 
     return "$estado"
 }
+# ============================================================
+# Estado persistente de Anya
+# ============================================================
+
+anya_mostrar() {
+    local expresion="$1"
+    local mensaje="$2"
+
+    [[ -z "$expresion" ]] && expresion="normal"
+    [[ -z "$mensaje" ]] && mensaje="¡Waku waku! ✦ Emiliano, sigo aquí contigo ♡"
+
+    printf '%s\n' "$mensaje" > "$HOME/.config/anya/estado/mensaje.txt"
+    printf '%s\n' "$expresion" > "$HOME/.config/anya/estado/expresion.txt"
+}
