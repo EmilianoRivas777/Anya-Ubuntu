@@ -119,17 +119,38 @@ anya_error() {
 add-zsh-hook preexec anya_preexec
 add-zsh-hook precmd anya_error
 
+# ==========================================
+# Detectar archivos nuevos o modificados
+# ==========================================
+
+anya_snapshot() {
+    find . -maxdepth 1 -type f -printf '%T@ %p\n' | sort
+}
+
+anya_detectar_cambios() {
+    local antes="$1"
+    local despues="$2"
+
+    local cambios
+
+    cambios=$(comm -13 "$antes" "$despues")
+
+    if [[ -n "$cambios" ]]; then
+        echo "$cambios" | sed 's/^[0-9.]* //' | sed 's|^\./||'
+    fi
+}
+
 
 # ==========================================
 # Detectar descargas con wget
 # ==========================================
-
 wget() {
     local archivo=""
     local estado
 
-    # Detectar archivo indicado con -O
+    # Detectar archivo indicado explícitamente
     local i=1
+
     while (( i <= $# )); do
         case "${@[$i]}" in
             -O)
@@ -151,17 +172,55 @@ wget() {
         (( i++ ))
     done
 
+    # Crear snapshots solamente si wget no indica
+    # explícitamente el nombre del archivo
+    local snapshot_antes=""
+    local snapshot_despues=""
+
+    if [[ -z "$archivo" ]]; then
+        snapshot_antes=$(mktemp)
+        anya_snapshot > "$snapshot_antes"
+    fi
+
     # Ejecutar wget real
     command wget "$@"
     estado="$?"
 
-    # Solo reaccionar si la descarga terminó correctamente
-    if [[ "$estado" -eq 0 && -n "$archivo" ]]; then
-        echo ""
-        anya_event descarga "$archivo"
-        echo ""
+    # Solo continuar si wget terminó correctamente
+    if [[ "$estado" -eq 0 ]]; then
+
+        # ------------------------------------------
+        # Caso 1: sabemos directamente el archivo
+        # ------------------------------------------
+
+        if [[ -n "$archivo" ]]; then
+            echo ""
+            anya_event descarga "$archivo"
+            echo ""
+
+        # ------------------------------------------
+        # Caso 2: wget eligió automáticamente el nombre
+        # ------------------------------------------
+
+        else
+            snapshot_despues=$(mktemp)
+            anya_snapshot > "$snapshot_despues"
+
+            local archivo_nuevo
+            archivo_nuevo=$(anya_detectar_cambios \
+                "$snapshot_antes" \
+                "$snapshot_despues"
+            )
+
+            if [[ -n "$archivo_nuevo" ]]; then
+                echo ""
+                anya_event descarga "$archivo_nuevo"
+                echo ""
+            fi
+
+            rm -f "$snapshot_antes" "$snapshot_despues"
+        fi
     fi
 
     return "$estado"
 }
-
