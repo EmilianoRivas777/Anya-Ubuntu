@@ -22,9 +22,10 @@ anya() {
             cat "$ANYA_DIR/error.txt"
             ;;
 
-        descarga)
-            cat "$ANYA_DIR/descarga.txt"
-            ;;
+	descarga)
+   	    local archivo="$2"
+    	    awk -v archivo="$archivo" '{gsub(/\{\{archivo\}\}/, archivo); print}' "$ANYA_DIR/descarga.txt"
+    	    ;;;
 
         *)
             echo "Estado de Anya desconocido: $estado"
@@ -51,7 +52,7 @@ anya_event() {
             ;;
 
         descarga)
-            anya descarga
+            anya descarga "$2"
             ;;
 
         *)
@@ -124,14 +125,43 @@ add-zsh-hook precmd anya_error
 # ==========================================
 
 wget() {
-    command wget "$@"
-    local estado="$?"
+    local archivo=""
+    local estado
 
-    if [[ "$estado" -eq 0 ]]; then
+    # Detectar archivo indicado con -O
+    local i=1
+    while (( i <= $# )); do
+        case "${@[$i]}" in
+            -O)
+                (( i++ ))
+                archivo="${@[$i]}"
+                ;;
+            -O*)
+                archivo="${@[$i]#-O}"
+                ;;
+            --output-document=*)
+                archivo="${@[$i]#--output-document=}"
+                ;;
+            --output-document)
+                (( i++ ))
+                archivo="${@[$i]}"
+                ;;
+        esac
+
+        (( i++ ))
+    done
+
+    # Ejecutar wget real
+    command wget "$@"
+    estado="$?"
+
+    # Solo reaccionar si la descarga terminó correctamente
+    if [[ "$estado" -eq 0 && -n "$archivo" ]]; then
         echo ""
-        anya_event descarga
+        anya_event descarga "$archivo"
         echo ""
     fi
 
     return "$estado"
 }
+
