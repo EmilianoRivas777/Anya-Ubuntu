@@ -5,6 +5,45 @@
 # Directorio principal de Anya
 ANYA_DIR="$HOME/.config/anya"
 
+# ==========================================
+# Establecer estado de Anya
+# ==========================================
+
+anya_set_estado() {
+    local estado="$1"
+    local archivo="$2"
+
+    local expresion
+    local mensaje
+
+    case "$estado" in
+
+        normal)
+            expresion="normal"
+            mensaje="¿Eh? ¿Qué harás?"
+            ;;
+
+        sorpresa)
+            expresion="sorpresa"
+            mensaje="¿Eh...? Algo salió mal..."
+            ;;
+
+        descarga)
+            expresion="feliz2"
+            mensaje="¡Descarga terminada: $archivo!"
+            ;;
+
+        *)
+            return 1
+            ;;
+    esac
+
+    printf '%s\n' "$expresion" \
+        > "$HOME/.config/anya/estado/expresion.txt"
+
+    printf '%s\n' "$mensaje" \
+        > "$HOME/.config/anya/estado/mensaje.txt"
+}
 
 # ==========================================
 # Mostrar una reacción
@@ -76,8 +115,6 @@ ANYA_LAST_COMMAND=""
 anya_preexec() {
     ANYA_LAST_COMMAND="$1"
 
-    builtin printf '%s\n' "normal" > "$HOME/.config/anya/estado/expresion.txt"
-    builtin printf '%s\n' "¿Eh? ¿Qué harás?" > "$HOME/.config/anya/estado/mensaje.txt"
 }
 
 # ==========================================
@@ -87,6 +124,11 @@ anya_preexec() {
 anya_error() {
     local estado="$?"
     local comando="$ANYA_LAST_COMMAND"
+
+if [[ "$estado" -eq 0 ]]; then
+    anya_set_estado normal
+    return
+fi
 
     # El comando terminó correctamente
     [[ "$estado" -eq 0 ]] && return
