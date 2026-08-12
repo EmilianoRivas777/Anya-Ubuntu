@@ -126,8 +126,6 @@ anya_error() {
     local estado="$?"
     local comando="$ANYA_LAST_COMMAND"
 
-    return
-
     # El comando terminó correctamente
     [[ "$estado" -eq 0 ]] && return
 
