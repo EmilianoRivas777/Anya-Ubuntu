@@ -285,3 +285,23 @@ anya_mostrar() {
     printf '%s\n' "$mensaje" > "$HOME/.config/anya/estado/mensaje.txt"
     printf '%s\n' "$expresion" > "$HOME/.config/anya/estado/expresion.txt"
 }
+
+# ==========================================
+# Conversación con Anya / OpenAI
+# ==========================================
+
+Anya() {
+    # Comprobar que recibimos un mensaje
+    if [[ $# -eq 0 ]]; then
+        echo 'Uso: Anya mensaje'
+        return 1
+    fi
+
+    # Ejecutar el cerebro de Anya
+    "$ANYA_DIR/venv/bin/python" \
+        "$ANYA_DIR/anya.py" \
+        "$@" > /dev/null
+}
+# Evitar que Zsh interprete ?, *, [] y otros comodines
+# dentro de los mensajes enviados a Anya.
+alias Anya='noglob Anya'
