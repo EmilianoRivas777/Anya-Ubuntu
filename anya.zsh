@@ -114,6 +114,7 @@ ANYA_LAST_COMMAND=""
 
 anya_preexec() {
     ANYA_LAST_COMMAND="$1"
+    anya_set_estado normal
 
 }
 
@@ -125,10 +126,7 @@ anya_error() {
     local estado="$?"
     local comando="$ANYA_LAST_COMMAND"
 
-if [[ "$estado" -eq 0 ]]; then
-    anya_set_estado normal
     return
-fi
 
     # El comando terminó correctamente
     [[ "$estado" -eq 0 ]] && return
@@ -246,7 +244,7 @@ wget() {
 
         if [[ -n "$archivo" ]]; then
             echo ""
-            anya_event descarga "$archivo"
+            anya_set_estado descarga "$archivo"
             echo ""
 
         # ------------------------------------------
@@ -265,7 +263,7 @@ wget() {
 
             if [[ -n "$archivo_nuevo" ]]; then
                 echo ""
-                anya_event descarga "$archivo_nuevo"
+                anya_set_estado descarga "$archivo_nuevo"
                 echo ""
             fi
 
