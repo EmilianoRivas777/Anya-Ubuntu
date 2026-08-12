@@ -15,15 +15,17 @@ anya() {
 
     case "$estado" in
         bienvenida)
+	    anya_mostrar "feliz" "¡Hola, Emiliano! ♡"
             cat "$ANYA_DIR/bienvenida.txt"
             ;;
 
-        error)
-            cat "$ANYA_DIR/error.txt"
-            ;;
-
+	error)
+    	   anya_mostrar "sorpresa" "¿Eh...? Algo salió mal..."
+    	   cat "$ANYA_DIR/error.txt"
+    	   ;;
 	descarga)
    	    local archivo="$2"
+            anya_mostrar "feliz2" "¡Descarga terminada! $archivo"
     	    awk -v archivo="$archivo" '{gsub(/\{\{archivo\}\}/, archivo); print}' "$ANYA_DIR/descarga.txt"
     	    ;;;
 
@@ -73,8 +75,10 @@ ANYA_LAST_COMMAND=""
 
 anya_preexec() {
     ANYA_LAST_COMMAND="$1"
-}
 
+    builtin printf '%s\n' "normal" > "$HOME/.config/anya/estado/expresion.txt"
+    builtin printf '%s\n' "¿Eh? ¿Qué harás?" > "$HOME/.config/anya/estado/mensaje.txt"
+}
 
 # ==========================================
 # Detectar errores reales
@@ -112,7 +116,12 @@ anya_error() {
     fi
 
     echo ""
+
+    builtin printf '%s\n' "sorpresa" > "$HOME/.config/anya/estado/expresion.txt"
+    builtin printf '%s\n' "¿Eh...? Algo salió mal..." > "$HOME/.config/anya/estado/mensaje.txt"
+
     anya_event error
+
     echo ""
 }
 
