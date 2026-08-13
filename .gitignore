@@ -1,0 +1,23 @@
+# ==========================================
+# Anya - Archivos ignorados
+# ==========================================
+
+# Estado generado durante la ejecución
+estado/
+
+# Entorno virtual de Python
+venv/
+
+# Caché de Python
+__pycache__/
+*.pyc
+
+# Variables de entorno y secretos
+.env
+
+# Logs
+logs/
+
+# Archivos temporales
+*.tmp
+*.bak
